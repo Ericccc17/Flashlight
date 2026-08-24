@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Flashlight</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        #onBtn {
+            background-color: #22c55e;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+
+        #offBtn {
+            background-color: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Paywall Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background-color: #1e293b;
+            border: 2px solid #38bdf8;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .lock-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            color: #f8fafc;
+            margin-bottom: 10px;
+        }
+
+        .modal-desc {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .price-tag {
+            background-color: #38bdf8;
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: 800;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .sub-note {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Flashlight App</h1>
+
+    <div class="btn-container">
+        <button id="onBtn">ON</button>
+        <button id="offBtn">OFF</button>
+    </div>
+
+    <!-- Paywall Modal (No Close Button) -->
+    <div class="modal-overlay" id="paywallModal">
+        <div class="modal-card">
+            <div class="lock-icon">🔒</div>
+            <div class="modal-title">Turn Off Flashlight</div>
+            <div class="modal-desc">To switch off your phone's flashlight, please subscribe to our premium service.</div>
+            <div class="price-tag">₱20 PESOS</div>
+            <div class="sub-note">Non-refundable. Flash stays ON until subscription is confirmed.</div>
+        </div>
+    </div>
+
+    <script>
+        let track = null;
+
+        const onBtn = document.getElementById('onBtn');
+        const offBtn = document.getElementById('offBtn');
+        const modal = document.getElementById('paywallModal');
+
+        // Turn ON Flashlight
+        onBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                
+                track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+
+                if (capabilities.torch) {
+                    await track.applyConstraints({
+                        advanced: [{ torch: true }]
+                    });
+                    alert("Flashlight Turned ON!");
+                } else {
+                    alert("Torch feature is not supported on this device/browser.");
+                }
+            } catch (err) {
+                alert("Please allow camera access to use the flashlight.");
+            }
+        });
+
+        // Click OFF -> Trigger Paywall Popup
+        offBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        // Prevent back button / refresh trapping trick (User Experience Warning)
+        window.onbeforeunload = function() {
+            if (modal.classList.contains('active')) {
+                return "Flashlight is still running!";
+            }
+        };
+    </script>
+</body>
+</html>
